@@ -1,0 +1,22 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/# IntelliJ
+              .idea/
+              *.iml
+
+              # Build
+              out/
+              target/
+              build/
+
+              # Compiled files
+              *.class
+
+              # Logs
+              *.log
+
+              # OS
+              .DS_Store
+              Thumbs.db
