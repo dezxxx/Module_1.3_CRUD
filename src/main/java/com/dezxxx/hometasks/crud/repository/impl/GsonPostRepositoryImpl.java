@@ -1,164 +1,124 @@
 package com.dezxxx.hometasks.crud.repository.impl;
 
-import com.dezxxx.hometasks.crud.model.Label;
 import com.dezxxx.hometasks.crud.model.Post;
 import com.dezxxx.hometasks.crud.model.Status;
-import com.dezxxx.hometasks.crud.repository.LabelRepository;
 import com.dezxxx.hometasks.crud.repository.PostRepository;
+import com.dezxxx.hometasks.crud.util.JsonUtil;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
 
 public class GsonPostRepositoryImpl implements PostRepository {
 
-    private static class PostRecord {
-        Long id;
-        Long writerId;
-        String title;
-        String content;
-        Status status;
-        List<Long> labelIds;
-    }
-
-    private static final Type LIST_TYPE = new TypeToken<List<PostRecord>>() {}.getType();
-
+    private static final Type LIST_TYPE = new TypeToken<List<Post>>() {}.getType();
     private final Path storagePath;
-    private final LabelRepository labelRepository;
 
-    public GsonPostRepositoryImpl(Path storagePath, LabelRepository labelRepository) {
+    public GsonPostRepositoryImpl(Path storagePath) {
         this.storagePath = storagePath;
-        this.labelRepository = labelRepository;
     }
 
     @Override
     public Post save(Post entity) {
-        List<PostRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
+        List<Post> posts = read();
 
-        long nextId = records.stream()
-                .map(r -> r.id)
-                .filter(Objects::nonNull)
-                .max(Long::compareTo)
-                .orElse(0L) + 1;
+        entity.setId(generateId(posts));
+        if (entity.getStatus() == null) {
+            entity.setStatus(Status.ACTIVE);
+        }
 
-        PostRecord r = toRecord(entity);
-        r.id = nextId;
-        if (r.status == null) r.status = Status.ACTIVE;
-
-        records.add(r);
-        JsonUtil.writeList(storagePath, records, LIST_TYPE);
-
-        entity.setId(nextId);
+        posts.add(entity);
+        write(posts);
         return entity;
     }
 
     @Override
     public Post update(Post entity) {
-        if (entity.getId() == null) throw new IllegalArgumentException("Post id is null");
+        validateId(entity.getId());
 
-        List<PostRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
+        List<Post> posts = read();
+        int index = findIndex(posts, entity.getId());
 
-        int idx = indexOfId(records, entity.getId());
-        if (idx == -1) throw new NoSuchElementException("Post not found: id=" + entity.getId());
+        if (index == -1) {
+            throw new NoSuchElementException("Post not found: id=" + entity.getId());
+        }
 
-        PostRecord updated = toRecord(entity);
-        if (updated.status == null) updated.status = records.get(idx).status;
+        if (entity.getStatus() == null) {
+            entity.setStatus(posts.get(index).getStatus());
+        }
 
-        records.set(idx, updated);
-        JsonUtil.writeList(storagePath, records, LIST_TYPE);
-
+        posts.set(index, entity);
+        write(posts);
         return entity;
     }
 
     @Override
     public Optional<Post> findById(Long id) {
-        List<PostRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
-
-        return records.stream()
-                .filter(r -> Objects.equals(r.id, id))
-                .filter(r -> r.status == Status.ACTIVE)
-                .findFirst()
-                .map(this::toModel);
+        return read().stream()
+                .filter(post -> Objects.equals(post.getId(), id))
+                .filter(post -> post.getStatus() == Status.ACTIVE)
+                .findFirst();
     }
 
     @Override
     public List<Post> findAll() {
-        List<PostRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
-
-        return records.stream()
-                .filter(r -> r.status == Status.ACTIVE)
-                .map(this::toModel)
-                .collect(Collectors.toList());
+        return read().stream()
+                .filter(post -> post.getStatus() == Status.ACTIVE)
+                .toList();
     }
 
     @Override
     public void deleteById(Long id) {
-        List<PostRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
+        List<Post> posts = read();
 
-        boolean changed = records.stream()
-                .filter(r -> Objects.equals(r.id, id))
+        boolean changed = posts.stream()
+                .filter(post -> Objects.equals(post.getId(), id))
                 .findFirst()
-                .map(r -> { r.status = Status.DELETED; return true; })
+                .map(post -> {
+                    post.setStatus(Status.DELETED);
+                    return true;
+                })
                 .orElse(false);
 
-        if (!changed) throw new NoSuchElementException("Post not found: id=" + id);
+        if (!changed) {
+            throw new NoSuchElementException("Post not found: id=" + id);
+        }
 
-        JsonUtil.writeList(storagePath, records, LIST_TYPE);
+        write(posts);
     }
 
-    @Override
-    public List<Post> findByWriterId(Long writerId) {
-        List<PostRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
-
-        return records.stream()
-                .filter(r -> Objects.equals(r.writerId, writerId))
-                .filter(r -> r.status == Status.ACTIVE)
-                .map(this::toModel)
-                .collect(Collectors.toList());
+    private List<Post> read() {
+        return JsonUtil.readList(storagePath, LIST_TYPE);
     }
 
-    // --- helpers ---
-    private int indexOfId(List<PostRecord> records, Long id) {
-        for (int i = 0; i < records.size(); i++) {
-            if (Objects.equals(records.get(i).id, id)) return i;
+    private void write(List<Post> posts) {
+        JsonUtil.writeList(storagePath, posts, LIST_TYPE);
+    }
+
+    private Long generateId(List<Post> posts) {
+        return posts.stream()
+                .map(Post::getId)
+                .filter(Objects::nonNull)
+                .max(Long::compareTo)
+                .orElse(0L) + 1;
+    }
+
+    private void validateId(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Id must not be null");
+        }
+    }
+
+    private int findIndex(List<Post> posts, Long id) {
+        for (int i = 0; i < posts.size(); i++) {
+            if (Objects.equals(posts.get(i).getId(), id)) {
+                return i;
+            }
         }
         return -1;
-    }
-
-    private PostRecord toRecord(Post post) {
-        PostRecord r = new PostRecord();
-        r.id = post.getId();
-        r.writerId = post.getWriterId();
-        r.title = post.getTitle();
-        r.content = post.getContent();
-        r.status = post.getStatus();
-
-        r.labelIds = (post.getLabels() == null) ? new ArrayList<>() :
-                post.getLabels().stream()
-                        .map(Label::getId)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-
-        return r;
-    }
-
-    private Post toModel(PostRecord r) {
-        Post post = new Post();
-        post.setId(r.id);
-        post.setWriterId(r.writerId);
-        post.setTitle(r.title);
-        post.setContent(r.content);
-        post.setStatus(r.status);
-
-        List<Label> labels = (r.labelIds == null) ? new ArrayList<>() :
-                r.labelIds.stream()
-                        .map(labelRepository::findById)
-                        .flatMap(Optional::stream)
-                        .collect(Collectors.toList());
-
-        post.setLabels(labels);
-        return post;
     }
 }

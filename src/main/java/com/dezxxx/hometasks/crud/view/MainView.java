@@ -1,5 +1,7 @@
 package com.dezxxx.hometasks.crud.view;
 
+import com.dezxxx.hometasks.crud.util.InputUtil;
+
 import java.util.Scanner;
 
 public class MainView {
@@ -23,14 +25,17 @@ public class MainView {
             System.out.println("2. Posts");
             System.out.println("3. Labels");
             System.out.println("0. Exit");
-            System.out.print("Choose: ");
 
-            String c = scanner.nextLine().trim();
-            switch (c) {
-                case "1" -> writerView.menu();
-                case "2" -> postView.menu();
-                case "3" -> labelView.menu();
-                case "0" -> { System.out.println("Bye!"); return; }
+            int choice = InputUtil.readChoice(scanner, "Choose: ");
+
+            switch (choice) {
+                case 1 -> writerView.menu();
+                case 2 -> postView.menu();
+                case 3 -> labelView.menu();
+                case 0 -> {
+                    System.out.println("Bye!");
+                    return;
+                }
                 default -> System.out.println("Invalid option");
             }
         }

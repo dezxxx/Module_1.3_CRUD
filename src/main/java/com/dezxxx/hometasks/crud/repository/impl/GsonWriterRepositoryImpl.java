@@ -1,150 +1,121 @@
 package com.dezxxx.hometasks.crud.repository.impl;
 
-import com.dezxxx.hometasks.crud.model.Post;
 import com.dezxxx.hometasks.crud.model.Status;
 import com.dezxxx.hometasks.crud.model.Writer;
-import com.dezxxx.hometasks.crud.repository.PostRepository;
 import com.dezxxx.hometasks.crud.repository.WriterRepository;
+import com.dezxxx.hometasks.crud.util.JsonUtil;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
 
 public class GsonWriterRepositoryImpl implements WriterRepository {
 
-    private static class WriterRecord {
-        Long id;
-        String firstName;
-        String lastName;
-        Status status;
-        List<Long> postIds;
-    }
-
-    private static final Type LIST_TYPE = new TypeToken<List<WriterRecord>>() {}.getType();
-
+    private static final Type LIST_TYPE = new TypeToken<List<Writer>>() {}.getType();
     private final Path storagePath;
-    private final PostRepository postRepository;
 
-    public GsonWriterRepositoryImpl(Path storagePath, PostRepository postRepository) {
+    public GsonWriterRepositoryImpl(Path storagePath) {
         this.storagePath = storagePath;
-        this.postRepository = postRepository;
     }
 
     @Override
     public Writer save(Writer entity) {
-        List<WriterRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
+        List<Writer> writers = read();
 
-        long nextId = records.stream()
-                .map(r -> r.id)
-                .filter(Objects::nonNull)
-                .max(Long::compareTo)
-                .orElse(0L) + 1;
+        entity.setId(generateId(writers));
 
-        WriterRecord r = toRecord(entity);
-        r.id = nextId;
-        if (r.status == null) r.status = Status.ACTIVE;
-
-        records.add(r);
-        JsonUtil.writeList(storagePath, records, LIST_TYPE);
-
-        entity.setId(nextId);
+        writers.add(entity);
+        write(writers);
         return entity;
     }
 
     @Override
     public Writer update(Writer entity) {
-        if (entity.getId() == null) throw new IllegalArgumentException("Writer id is null");
+        validateId(entity.getId());
 
-        List<WriterRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
+        List<Writer> writers = read();
+        int index = findIndex(writers, entity.getId());
 
-        int idx = indexOfId(records, entity.getId());
-        if (idx == -1) throw new NoSuchElementException("Writer not found: id=" + entity.getId());
+        if (index == -1) {
+            throw new NoSuchElementException("Writer not found: id=" + entity.getId());
+        }
 
-        WriterRecord updated = toRecord(entity);
-        if (updated.status == null) updated.status = records.get(idx).status;
+        if (entity.getStatus() == null) {
+            entity.setStatus(writers.get(index).getStatus());
+        }
 
-        records.set(idx, updated);
-        JsonUtil.writeList(storagePath, records, LIST_TYPE);
-
+        writers.set(index, entity);
+        write(writers);
         return entity;
     }
 
     @Override
     public Optional<Writer> findById(Long id) {
-        List<WriterRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
-
-        return records.stream()
-                .filter(r -> Objects.equals(r.id, id))
-                .filter(r -> r.status == Status.ACTIVE)
-                .findFirst()
-                .map(this::toModel);
+        return read().stream()
+                .filter(writer -> Objects.equals(writer.getId(), id))
+                .filter(writer -> writer.getStatus() == Status.ACTIVE)
+                .findFirst();
     }
 
     @Override
     public List<Writer> findAll() {
-        List<WriterRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
-
-        return records.stream()
-                .filter(r -> r.status == Status.ACTIVE)
-                .map(this::toModel)
-                .collect(Collectors.toList());
+        return read().stream()
+                .filter(writer -> writer.getStatus() == Status.ACTIVE)
+                .toList();
     }
 
     @Override
     public void deleteById(Long id) {
-        List<WriterRecord> records = JsonUtil.readList(storagePath, LIST_TYPE);
+        List<Writer> writers = read();
 
-        boolean changed = records.stream()
-                .filter(r -> Objects.equals(r.id, id))
+        boolean changed = writers.stream()
+                .filter(writer -> Objects.equals(writer.getId(), id))
                 .findFirst()
-                .map(r -> { r.status = Status.DELETED; return true; })
+                .map(writer -> {
+                    writer.setStatus(Status.DELETED);
+                    return true;
+                })
                 .orElse(false);
 
-        if (!changed) throw new NoSuchElementException("Writer not found: id=" + id);
+        if (!changed) {
+            throw new NoSuchElementException("Writer not found: id=" + id);
+        }
 
-        JsonUtil.writeList(storagePath, records, LIST_TYPE);
+        write(writers);
     }
 
-    // --- helpers ---
-    private int indexOfId(List<WriterRecord> records, Long id) {
-        for (int i = 0; i < records.size(); i++) {
-            if (Objects.equals(records.get(i).id, id)) return i;
+    private List<Writer> read() {
+        return JsonUtil.readList(storagePath, LIST_TYPE);
+    }
+
+    private void write(List<Writer> writers) {
+        JsonUtil.writeList(storagePath, writers, LIST_TYPE);
+    }
+
+    private Long generateId(List<Writer> writers) {
+        return writers.stream()
+                .map(Writer::getId)
+                .filter(Objects::nonNull)
+                .max(Long::compareTo)
+                .orElse(0L) + 1;
+    }
+
+    private void validateId(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Id must not be null");
+        }
+    }
+
+    private int findIndex(List<Writer> writers, Long id) {
+        for (int i = 0; i < writers.size(); i++) {
+            if (Objects.equals(writers.get(i).getId(), id)) {
+                return i;
+            }
         }
         return -1;
-    }
-
-    private WriterRecord toRecord(Writer writer) {
-        WriterRecord r = new WriterRecord();
-        r.id = writer.getId();
-        r.firstName = writer.getFirstName();
-        r.lastName = writer.getLastName();
-        r.status = writer.getStatus();
-
-        r.postIds = (writer.getPosts() == null) ? new ArrayList<>() :
-                writer.getPosts().stream()
-                        .map(Post::getId)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-
-        return r;
-    }
-
-    private Writer toModel(WriterRecord r) {
-        Writer writer = new Writer();
-        writer.setId(r.id);
-        writer.setFirstName(r.firstName);
-        writer.setLastName(r.lastName);
-        writer.setStatus(r.status);
-
-        List<Post> posts = (r.postIds == null) ? new ArrayList<>() :
-                r.postIds.stream()
-                        .map(postRepository::findById)
-                        .flatMap(Optional::stream)
-                        .collect(Collectors.toList());
-
-        writer.setPosts(posts);
-        return writer;
     }
 }
