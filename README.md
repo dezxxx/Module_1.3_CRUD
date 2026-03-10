@@ -85,4 +85,5 @@ Gson
 
 # Author
 
-Sergey Zatulski
+Sergey Zatulsky
+
