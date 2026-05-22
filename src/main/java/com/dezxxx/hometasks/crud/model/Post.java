@@ -1,6 +1,6 @@
 package com.dezxxx.hometasks.crud.model;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -9,19 +9,13 @@ public class Post {
     private Long id;
     private String title;
     private String content;
-    private Status status;
-    private List<Label> labels = new ArrayList<>();
+    private Writer writer;
+    private LocalDateTime created;
+    private LocalDateTime updated;
+    private String status;
+    private List<Label> labels;
 
-    public Post() {
-    }
 
-    public Post(Long id, String title, String content, Status status, List<Label> labels) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
-        this.status = status;
-        this.labels = labels != null ? labels : new ArrayList<>();
-    }
 
     public Long getId() {
         return id;
@@ -47,11 +41,35 @@ public class Post {
         this.content = content;
     }
 
-    public Status getStatus() {
+    public Writer getWriter() {
+        return writer;
+    }
+
+    public void setWriter(Writer writer) {
+        this.writer = writer;
+    }
+
+    public LocalDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(LocalDateTime created) {
+        this.created = created;
+    }
+
+    public LocalDateTime getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(LocalDateTime updated) {
+        this.updated = updated;
+    }
+
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
@@ -60,29 +78,30 @@ public class Post {
     }
 
     public void setLabels(List<Label> labels) {
-        this.labels = labels != null ? labels : new ArrayList<>();
-    }
-
-    @Override
-    public String toString() {
-        return "Post{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", content='" + content + '\'' +
-                ", status=" + status +
-                ", labels=" + labels.stream().map(Label::getName).toList() +
-                '}';
+        this.labels = labels;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Post other)) return false;
-        return id != null && id.equals(other.id);
+        if (!(o instanceof Post)) return false;
+        Post post = (Post) o;
+        return Objects.equals(id, post.id);
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : Objects.hash(title, content);
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Post{" +
+                "writer=" + writer+
+                ", id=" + id +
+                ", title='" + title + '\'' +
+                ", status='" + status + '\'' +
+                ", labels=" + (labels == null ? 0 : labels.size()) +
+                '}';
     }
 }

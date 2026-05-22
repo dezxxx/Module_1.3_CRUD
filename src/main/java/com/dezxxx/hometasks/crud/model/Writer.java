@@ -1,6 +1,5 @@
 package com.dezxxx.hometasks.crud.model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -9,19 +8,8 @@ public class Writer {
     private Long id;
     private String firstName;
     private String lastName;
-    private Status status;
-    private List<Post> posts = new ArrayList<>();
 
-    public Writer() {
-    }
-
-    public Writer(Long id, String firstName, String lastName, Status status, List<Post> posts) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.status = status;
-        this.posts = posts != null ? posts : new ArrayList<>();
-    }
+    private List<Post> posts;
 
     public Long getId() {
         return id;
@@ -47,20 +35,25 @@ public class Writer {
         this.lastName = lastName;
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
     public List<Post> getPosts() {
         return posts;
     }
 
     public void setPosts(List<Post> posts) {
-        this.posts = posts != null ? posts : new ArrayList<>();
+        this.posts = posts;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Writer)) return false;
+        Writer writer = (Writer) o;
+        return Objects.equals(id, writer.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     @Override
@@ -69,20 +62,7 @@ public class Writer {
                 "id=" + id +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", status=" + status +
-                ", posts=" + posts.stream().map(Post::getTitle).toList() +
+                ", posts=" + (posts == null ? 0 : posts.size()) +
                 '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Writer other)) return false;
-        return id != null && id.equals(other.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return id != null ? id.hashCode() : Objects.hash(firstName, lastName);
     }
 }

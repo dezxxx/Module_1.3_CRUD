@@ -19,7 +19,9 @@ public class MainView {
     }
 
     public void start() {
+
         while (true) {
+
             System.out.println("\n===== MAIN MENU =====");
             System.out.println("1. Writers");
             System.out.println("2. Posts");
@@ -29,13 +31,18 @@ public class MainView {
             int choice = InputUtil.readChoice(scanner, "Choose: ");
 
             switch (choice) {
+
                 case 1 -> writerView.menu();
+
                 case 2 -> postView.menu();
+
                 case 3 -> labelView.menu();
+
                 case 0 -> {
                     System.out.println("Bye!");
                     return;
                 }
+
                 default -> System.out.println("Invalid option");
             }
         }
