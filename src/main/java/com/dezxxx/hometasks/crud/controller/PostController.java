@@ -1,72 +1,63 @@
 package com.dezxxx.hometasks.crud.controller;
 
+import com.dezxxx.hometasks.crud.config.PostStatus;
 import com.dezxxx.hometasks.crud.model.Label;
 import com.dezxxx.hometasks.crud.model.Post;
-import com.dezxxx.hometasks.crud.model.Status;
-import com.dezxxx.hometasks.crud.repository.PostRepository;
+import com.dezxxx.hometasks.crud.model.Writer;
+import com.dezxxx.hometasks.crud.service.PostService;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 public class PostController {
 
-    private final PostRepository postRepository;
+    private final PostService postService;
 
-    public PostController(PostRepository postRepository) {
-        this.postRepository = postRepository;
+    public PostController(PostService postService) {
+        this.postService = postService;
     }
 
-    public Post create(String title, String content, List<Label> labels) {
-        validateText(title, "title");
-        validateText(content, "content");
+    public Post create(String title,
+                       String content,
+                       List<Label> labels, Writer writer) {
 
-        Post post = new Post();
-        post.setTitle(title.trim());
-        post.setContent(content.trim());
-        post.setStatus(Status.ACTIVE);
-        post.setLabels(labels);
-
-        return postRepository.save(post);
+        return postService.create(
+                title,
+                content,
+                labels,
+                writer
+        );
     }
 
     public List<Post> getAll() {
-        return postRepository.findAll();
+
+        return postService.getAll();
     }
 
     public Post getById(Long id) {
-        validateId(id);
 
-        return postRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Post not found: id=" + id));
+        return postService.getById(id);
     }
 
-    public Post update(Long id, String title, String content, List<Label> labels) {
-        validateId(id);
-        validateText(title, "title");
-        validateText(content, "content");
+    public Post update(Long id,
+                       String title,
+                       String content,
+                       List<Label> labels) {
 
-        Post existing = getById(id);
-        existing.setTitle(title.trim());
-        existing.setContent(content.trim());
-        existing.setLabels(labels);
-
-        return postRepository.update(existing);
+        return postService.update(
+                id,
+                title,
+                content,
+                labels
+        );
     }
 
     public void delete(Long id) {
-        validateId(id);
-        postRepository.deleteById(id);
+
+        postService.delete(id);
     }
 
-    private void validateId(Long id) {
-        if (id == null || id <= 0) {
-            throw new IllegalArgumentException("Id must be positive");
-        }
-    }
+    public Post changeStatus(Long id, PostStatus status) {
 
-    private void validateText(String text, String fieldName) {
-        if (text == null || text.trim().isEmpty()) {
-            throw new IllegalArgumentException(fieldName + " must not be blank");
-        }
+        return postService.changeStatus(id, status);
     }
 }

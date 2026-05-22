@@ -11,7 +11,7 @@ The project works with three entities:
 Data is stored in JSON files using the Gson library.
 
 Deletion is implemented as soft delete --- records are not removed from
-the file, their status is changed to DELETED.
+the file, their postStatus is changed to DELETED.
 
 ------------------------------------------------------------------------
 
@@ -19,15 +19,15 @@ the file, their status is changed to DELETED.
 
 Writer -- author that can have multiple posts.
 
-Writer ├ id ├ firstName ├ lastName ├ status └ List`<Post>`{=html} posts
+Writer ├ id ├ firstName ├ lastName ├ postStatus └ List`<Post>`{=html} posts
 
 Post -- contains text and a list of labels.
 
-Post ├ id ├ title ├ content ├ status └ List`<Label>`{=html} labels
+Post ├ id ├ title ├ content ├ postStatus └ List`<Label>`{=html} labels
 
 Label -- tag (category) assigned to a post.
 
-Label ├ id ├ name └ status
+Label ├ id ├ name └ postStatus
 
 ------------------------------------------------------------------------
 
