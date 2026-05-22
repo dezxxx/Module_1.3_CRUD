@@ -19,6 +19,7 @@ import com.dezxxx.hometasks.crud.service.WriterService;
 import com.dezxxx.hometasks.crud.util.ConnectionManager;
 import com.dezxxx.hometasks.crud.util.LiquibaseMigration;
 
+import com.dezxxx.hometasks.crud.validation.CompositeStrategy;
 import com.dezxxx.hometasks.crud.validation.NotBlankStrategy;
 import com.dezxxx.hometasks.crud.validation.PositiveIdStrategy;
 import com.dezxxx.hometasks.crud.validation.ValidationStrategy;
@@ -56,8 +57,10 @@ public class ApplicationContext {
             // =========================
             // 3. VALIDATORS  (Strategy)
             // =========================
-            ValidationStrategy<String> textValidator = new NotBlankStrategy();
-            ValidationStrategy<Long> idValidator = new PositiveIdStrategy();
+            ValidationStrategy<String> textValidator =
+                    new CompositeStrategy<>(new NotBlankStrategy());
+            ValidationStrategy<Long> idValidator =
+                    new CompositeStrategy<>(new PositiveIdStrategy());
 
             // =========================
             // 4. REPOSITORIES
