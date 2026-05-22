@@ -193,6 +193,7 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
     private List<Writer> mapWriters(ResultSet rs) throws SQLException {
 
         Map<Long, Writer> writerMap = new LinkedHashMap<>();
+        Map<Long, Post>   postMap   = new LinkedHashMap<>();
 
         while (rs.next()) {
 
@@ -201,13 +202,11 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
             Writer writer = writerMap.get(writerId);
 
             if (writer == null) {
-
                 writer = new Writer();
                 writer.setId(writerId);
                 writer.setFirstName(rs.getString("writer_first_name"));
                 writer.setLastName(rs.getString("writer_last_name"));
                 writer.setPosts(new ArrayList<>());
-
                 writerMap.put(writerId, writer);
             }
 
@@ -215,7 +214,7 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
 
             if (!rs.wasNull()) {
 
-                Post post = findPost(writer, postId);
+                Post post = postMap.get(postId);
 
                 if (post == null) {
 
@@ -237,6 +236,7 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
                         post.setUpdated(updated.toLocalDateTime());
                     }
 
+                    postMap.put(postId, post);
                     writer.getPosts().add(post);
                 }
 
@@ -244,9 +244,10 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
 
                 if (!rs.wasNull()) {
 
+                    final Long lid = labelId;
                     boolean alreadyExists = post.getLabels()
                             .stream()
-                            .anyMatch(l -> l.getId().equals(labelId));
+                            .anyMatch(l -> l.getId().equals(lid));
 
                     if (!alreadyExists) {
 
@@ -261,14 +262,5 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
         }
 
         return new ArrayList<>(writerMap.values());
-    }
-
-    private Post findPost(Writer writer, Long postId) {
-
-        return writer.getPosts()
-                .stream()
-                .filter(p -> p.getId().equals(postId))
-                .findFirst()
-                .orElse(null);
     }
 }

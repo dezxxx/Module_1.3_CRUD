@@ -15,7 +15,9 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class JdbcPostRepositoryImpl implements PostRepository {
@@ -156,27 +158,22 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
     private List<Post> mapPosts(ResultSet rs) throws SQLException {
 
-        List<Post> posts = new ArrayList<>();
+        Map<Long, Post> postMap = new LinkedHashMap<>();
 
         while (rs.next()) {
 
             Long postId = rs.getLong("post_id");
 
-            Post post = findPost(posts, postId);
+            Post post = postMap.get(postId);
 
             if (post == null) {
 
                 post = new Post();
-
                 post.setId(postId);
-
-                post.setTitle(
-                        rs.getString("post_title")
-                );
-
-                post.setContent(
-                        rs.getString("post_content")
-                );
+                post.setTitle(rs.getString("post_title"));
+                post.setContent(rs.getString("post_content"));
+                post.setStatus(rs.getString("post_status"));
+                post.setLabels(new ArrayList<>());
 
                 Writer writer = new Writer();
                 writer.setId(rs.getLong("writer_id"));
@@ -185,59 +182,39 @@ public class JdbcPostRepositoryImpl implements PostRepository {
                 post.setWriter(writer);
 
                 Timestamp created = rs.getTimestamp("post_created");
-
                 if (created != null) {
-
-                    post.setCreated(
-                            created.toLocalDateTime()
-                    );
+                    post.setCreated(created.toLocalDateTime());
                 }
 
                 Timestamp updated = rs.getTimestamp("post_updated");
-
                 if (updated != null) {
-
-                    post.setUpdated(
-                            updated.toLocalDateTime()
-                    );
+                    post.setUpdated(updated.toLocalDateTime());
                 }
 
-                post.setStatus(
-                        rs.getString("post_status")
-                );
-
-                post.setLabels(new ArrayList<>());
-
-                posts.add(post);
+                postMap.put(postId, post);
             }
 
             Long labelId = rs.getLong("label_id");
 
             if (!rs.wasNull()) {
 
-                boolean alreadyExists =
-                        post.getLabels()
-                                .stream()
-                                .anyMatch(
-                                        l -> l.getId().equals(labelId)
-                                );
+                final Long lid = labelId;
+                boolean alreadyExists = post.getLabels()
+                        .stream()
+                        .anyMatch(l -> l.getId().equals(lid));
 
                 if (!alreadyExists) {
 
                     Label label = new Label();
-
                     label.setId(labelId);
-
-                    label.setName(
-                            rs.getString("label_name")
-                    );
+                    label.setName(rs.getString("label_name"));
 
                     post.getLabels().add(label);
                 }
             }
         }
 
-        return posts;
+        return new ArrayList<>(postMap.values());
     }
 
     @Override
@@ -354,14 +331,4 @@ public class JdbcPostRepositoryImpl implements PostRepository {
         }
     }
 
-    private Post findPost(
-            List<Post> posts,
-            Long postId
-    ) {
-
-        return posts.stream()
-                .filter(p -> p.getId().equals(postId))
-                .findFirst()
-                .orElse(null);
-    }
 }
