@@ -40,7 +40,7 @@ View → Controller → Service → Repository → MySQL
 ## Design Patterns
 
 - **Singleton** — `ConnectionManager` holds a single database connection for the app lifetime
-- **Strategy** — `ValidationStrategy<T>` interface with `NotBlankStrategy` and `PositiveIdStrategy` — injected into services, eliminates duplicated validation code
+- **Strategy** — `ValidationStrategy<T>` interface with `NotBlankStrategy`, `PositiveIdStrategy`, and `CompositeStrategy` (chains multiple rules) — injected into services, eliminates duplicated validation code
 - **Facade** — `ApplicationContext` hides the full initialization complexity (connection → migrations → repositories → services → controllers → views); `App.java` only calls `new ApplicationContext().start()`
 
 ---
@@ -81,6 +81,8 @@ db.changelog-master.xml   ← master (includes SQL files)
 002-post.sql              ← CREATE TABLE post + FK to writer
 003-label.sql             ← CREATE TABLE label
 004-relations.sql         ← CREATE TABLE post_label (M:N junction)
+005-not-null-writer-names.sql   ← ALTER writer: first_name/last_name NOT NULL
+006-not-null-post-writer-id.sql ← ALTER post: writer_id NOT NULL
 ```
 
 Liquibase runs automatically on application startup.
@@ -151,9 +153,9 @@ mvn test
 Tests cover the service layer using **JUnit 5** and **Mockito** (repositories are mocked — no DB required):
 
 ```
-LabelServiceTest   — 12 tests
-PostServiceTest    — 12 tests
-WriterServiceTest  — 15 tests
+LabelServiceTest   — 13 tests
+PostServiceTest    — 17 tests
+WriterServiceTest  — 16 tests
 ```
 
 ---
@@ -178,11 +180,13 @@ src/
 │   │   │   ├── InputUtil.java
 │   │   │   ├── LiquibaseMigration.java
 │   │   │   ├── Pager.java
+│   │   │   ├── RepositoryException.java
 │   │   │   └── UserCancelledException.java
 │   │   └── validation/
 │   │       ├── ValidationStrategy.java    (Strategy interface)
 │   │       ├── NotBlankStrategy.java
-│   │       └── PositiveIdStrategy.java
+│   │       ├── PositiveIdStrategy.java
+│   │       └── CompositeStrategy.java     (chains multiple rules)
 │   └── resources/
 │       └── db/changelog/
 └── test/
