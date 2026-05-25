@@ -9,6 +9,7 @@ import com.dezxxx.hometasks.crud.model.Post;
 import com.dezxxx.hometasks.crud.model.Writer;
 import com.dezxxx.hometasks.crud.util.InputUtil;
 import com.dezxxx.hometasks.crud.util.Pager;
+import com.dezxxx.hometasks.crud.util.RepositoryException;
 import com.dezxxx.hometasks.crud.util.UserCancelledException;
 
 import java.util.ArrayList;
@@ -63,8 +64,11 @@ public class PostView {
 
             } catch (UserCancelledException e) {
                 System.out.println("Cancelled. Returning to Post menu.");
+            } catch (RepositoryException e) {
+                System.out.println("Database error: " + e.getMessage());
             } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+                String msg = e.getMessage();
+                System.out.println("Error: " + (msg != null ? msg : e.getClass().getSimpleName()));
             }
 
             if (needsPause) pause();

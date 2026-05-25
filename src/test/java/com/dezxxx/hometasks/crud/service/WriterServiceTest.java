@@ -154,6 +154,13 @@ class WriterServiceTest {
     }
 
     @Test
+    void update_shouldThrowWhenLastNameIsBlank() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.update(1L, "John", "  "));
+        verifyNoInteractions(repository);
+    }
+
+    @Test
     void delete_shouldCallRepository() {
         service.delete(1L);
         verify(repository).deleteById(1L);

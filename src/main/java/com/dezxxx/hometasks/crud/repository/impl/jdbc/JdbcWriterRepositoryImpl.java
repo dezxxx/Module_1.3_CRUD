@@ -5,6 +5,8 @@ import com.dezxxx.hometasks.crud.model.Post;
 import com.dezxxx.hometasks.crud.model.Writer;
 import com.dezxxx.hometasks.crud.repository.WriterRepository;
 
+import com.dezxxx.hometasks.crud.util.RepositoryException;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -84,7 +86,7 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error saving writer",
                     e
             );
@@ -94,7 +96,7 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
     @Override
     public List<Writer> findAll() {
 
-        String sql = BASE_SQL + "ORDER BY w.id, p.id";
+        String sql = BASE_SQL + "WHERE (p.id IS NULL OR p.status <> 'DELETED') ORDER BY w.id, p.id";
 
         try (PreparedStatement ps =
                 connection.prepareStatement(sql);
@@ -105,7 +107,7 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error loading writers",
                     e
             );
@@ -115,7 +117,7 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
     @Override
     public Optional<Writer> findById(Long id) {
 
-        String sql = BASE_SQL + "WHERE w.id = ? ORDER BY p.id";
+        String sql = BASE_SQL + "WHERE w.id = ? AND (p.id IS NULL OR p.status <> 'DELETED') ORDER BY p.id";
 
         try (PreparedStatement ps =
                 connection.prepareStatement(sql)) {
@@ -129,7 +131,7 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error loading writer by id",
                     e
             );
@@ -159,7 +161,7 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error updating writer",
                     e
             );
@@ -183,7 +185,7 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error deleting writer",
                     e
             );
@@ -244,10 +246,9 @@ public class JdbcWriterRepositoryImpl implements WriterRepository {
 
                 if (!rs.wasNull()) {
 
-                    final Long lid = labelId;
-                    boolean alreadyExists = post.getLabels()
+                        boolean alreadyExists = post.getLabels()
                             .stream()
-                            .anyMatch(l -> l.getId().equals(lid));
+                            .anyMatch(l -> l.getId().equals(labelId));
 
                     if (!alreadyExists) {
 

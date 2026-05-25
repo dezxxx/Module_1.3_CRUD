@@ -4,6 +4,7 @@ import com.dezxxx.hometasks.crud.model.Label;
 import com.dezxxx.hometasks.crud.model.Post;
 import com.dezxxx.hometasks.crud.model.Writer;
 import com.dezxxx.hometasks.crud.repository.PostRepository;
+import com.dezxxx.hometasks.crud.util.RepositoryException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -76,7 +77,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error saving post",
                     e
             );
@@ -114,7 +115,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
     @Override
     public List<Post> findAll() {
 
-        String sql = BASE_SQL + "WHERE p.status != 'DELETED' ORDER BY p.id";
+        String sql = BASE_SQL + "WHERE p.status <> 'DELETED' ORDER BY p.id";
 
         try (PreparedStatement ps =
                 connection.prepareStatement(sql);
@@ -125,7 +126,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error loading posts",
                     e
             );
@@ -149,7 +150,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error loading post by id",
                     e
             );
@@ -198,10 +199,9 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
             if (!rs.wasNull()) {
 
-                final Long lid = labelId;
                 boolean alreadyExists = post.getLabels()
                         .stream()
-                        .anyMatch(l -> l.getId().equals(lid));
+                        .anyMatch(l -> l.getId().equals(labelId));
 
                 if (!alreadyExists) {
 
@@ -238,7 +238,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
             ps.setTimestamp(
                     3,
-                    Timestamp.valueOf(LocalDateTime.now())
+                    Timestamp.valueOf(post.getUpdated())
             );
 
             ps.setString(4, post.getStatus());
@@ -255,7 +255,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error updating post",
                     e
             );
@@ -282,7 +282,7 @@ public class JdbcPostRepositoryImpl implements PostRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error soft-deleting post",
                     e
             );

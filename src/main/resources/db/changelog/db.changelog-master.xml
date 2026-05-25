@@ -11,5 +11,7 @@
     <include file="db/changelog/002-post.sql"/>
     <include file="db/changelog/003-label.sql"/>
     <include file="db/changelog/004-relations.sql"/>
+    <include file="db/changelog/005-not-null-writer-names.sql"/>
+    <include file="db/changelog/006-not-null-post-writer-id.sql"/>
 
 </databaseChangeLog>

@@ -1,5 +1,6 @@
 package com.dezxxx.hometasks.crud.service;
 
+import com.dezxxx.hometasks.crud.config.PostStatus;
 import com.dezxxx.hometasks.crud.model.Post;
 import com.dezxxx.hometasks.crud.model.Writer;
 import com.dezxxx.hometasks.crud.repository.PostRepository;
@@ -138,6 +139,13 @@ class PostServiceTest {
     }
 
     @Test
+    void update_shouldThrowWhenContentIsBlank() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.update(1L, "Title", "  ", List.of()));
+        verifyNoInteractions(repository);
+    }
+
+    @Test
     void delete_shouldCallRepository() {
         service.delete(1L);
         verify(repository).deleteById(1L);
@@ -148,5 +156,42 @@ class PostServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.delete(null));
         verifyNoInteractions(repository);
+    }
+
+    @Test
+    void changeStatus_shouldChangeStatusAndReturnPost() {
+        Post post = new Post();
+        post.setId(1L);
+        post.setStatus(PostStatus.ACTIVE.name());
+
+        when(repository.findById(1L)).thenReturn(Optional.of(post));
+        when(repository.update(post)).thenReturn(post);
+
+        Post result = service.changeStatus(1L, PostStatus.UNDER_REVIEW);
+
+        assertEquals(PostStatus.UNDER_REVIEW.name(), result.getStatus());
+        verify(repository).update(post);
+    }
+
+    @Test
+    void changeStatus_shouldThrowWhenIdIsNull() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.changeStatus(null, PostStatus.ACTIVE));
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void changeStatus_shouldThrowWhenIdIsNegative() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.changeStatus(-5L, PostStatus.ACTIVE));
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void changeStatus_shouldThrowWhenPostNotFound() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class,
+                () -> service.changeStatus(99L, PostStatus.ACTIVE));
     }
 }

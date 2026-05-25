@@ -8,7 +8,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 
 import java.sql.Connection;
 
-public class LiquibaseMigration {  // <-- добавь это
+public class LiquibaseMigration {
 
     public static void run(Connection connection) {
 

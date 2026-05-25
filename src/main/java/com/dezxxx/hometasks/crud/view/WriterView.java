@@ -5,6 +5,7 @@ import com.dezxxx.hometasks.crud.model.Post;
 import com.dezxxx.hometasks.crud.model.Writer;
 import com.dezxxx.hometasks.crud.util.InputUtil;
 import com.dezxxx.hometasks.crud.util.Pager;
+import com.dezxxx.hometasks.crud.util.RepositoryException;
 import com.dezxxx.hometasks.crud.util.UserCancelledException;
 
 import java.util.List;
@@ -49,8 +50,11 @@ public class WriterView {
 
             } catch (UserCancelledException e) {
                 System.out.println("Cancelled. Returning to Writer menu.");
+            } catch (RepositoryException e) {
+                System.out.println("Database error: " + e.getMessage());
             } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+                String msg = e.getMessage();
+                System.out.println("Error: " + (msg != null ? msg : e.getClass().getSimpleName()));
             }
 
             if (needsPause) pause();

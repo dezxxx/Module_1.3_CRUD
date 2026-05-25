@@ -2,6 +2,7 @@ package com.dezxxx.hometasks.crud.repository.impl.jdbc;
 
 import com.dezxxx.hometasks.crud.model.Label;
 import com.dezxxx.hometasks.crud.repository.LabelRepository;
+import com.dezxxx.hometasks.crud.util.RepositoryException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -49,7 +50,7 @@ public class JdbcLabelRepositoryImpl implements LabelRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error saving label",
                     e
             );
@@ -86,7 +87,7 @@ public class JdbcLabelRepositoryImpl implements LabelRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error loading labels",
                     e
             );
@@ -124,7 +125,7 @@ public class JdbcLabelRepositoryImpl implements LabelRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error finding label",
                     e
             );
@@ -152,7 +153,7 @@ public class JdbcLabelRepositoryImpl implements LabelRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error updating label",
                     e
             );
@@ -176,7 +177,7 @@ public class JdbcLabelRepositoryImpl implements LabelRepository {
 
         } catch (SQLException e) {
 
-            throw new RuntimeException(
+            throw new RepositoryException(
                     "Error deleting label",
                     e
             );

@@ -130,6 +130,13 @@ class LabelServiceTest {
     }
 
     @Test
+    void update_shouldThrowWhenNameIsBlank() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.update(1L, "  "));
+        verifyNoInteractions(repository);
+    }
+
+    @Test
     void delete_shouldCallRepository() {
         service.delete(1L);
         verify(repository).deleteById(1L);

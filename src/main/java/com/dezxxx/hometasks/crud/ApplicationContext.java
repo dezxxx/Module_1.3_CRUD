@@ -128,9 +128,13 @@ public class ApplicationContext {
 
         } catch (Exception e) {
 
-            throw new RuntimeException(
-                    "Failed to initialize application", e
-            );
+            System.out.println("======================================");
+            System.out.println("  Application failed to start.");
+            System.out.println("  Make sure the database is running");
+            System.out.println("  and the connection settings are correct.");
+            System.out.println("======================================");
+            System.exit(1);
+            throw new IllegalStateException();
         }
     }
 
