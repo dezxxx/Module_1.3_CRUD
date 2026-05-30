@@ -15,8 +15,9 @@
 
         <junit.version>5.10.2</junit.version>
         <mockito.version>5.12.0</mockito.version>
-        <mysql.version>9.3.0</mysql.version>
-        <liquibase.version>4.29.1</liquibase.version>
+        <mysql.version>9.1.0</mysql.version>
+        <hibernate.version>6.6.3.Final</hibernate.version>
+        <flyway.version>10.20.1</flyway.version>
 
     </properties>
 
@@ -29,12 +30,26 @@
             <version>${mysql.version}</version>
         </dependency>
 
-        <!-- Liquibase -->
+        <!-- Hibernate -->
         <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-            <version>${liquibase.version}</version>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
         </dependency>
+
+        <!-- Flyway -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
 
         <!-- JUnit 5 -->
         <dependency>

@@ -162,14 +162,14 @@ class PostServiceTest {
     void changeStatus_shouldChangeStatusAndReturnPost() {
         Post post = new Post();
         post.setId(1L);
-        post.setStatus(PostStatus.ACTIVE.name());
+        post.setStatus(PostStatus.ACTIVE);
 
         when(repository.findById(1L)).thenReturn(Optional.of(post));
         when(repository.update(post)).thenReturn(post);
 
         Post result = service.changeStatus(1L, PostStatus.UNDER_REVIEW);
 
-        assertEquals(PostStatus.UNDER_REVIEW.name(), result.getStatus());
+        assertEquals(PostStatus.UNDER_REVIEW, result.getStatus());
         verify(repository).update(post);
     }
 

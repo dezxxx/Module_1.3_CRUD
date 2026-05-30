@@ -1,6 +1,3 @@
---liquibase formatted sql
-
---changeset dev:4
 CREATE TABLE post_label
 (
     post_id  BIGINT NOT NULL,

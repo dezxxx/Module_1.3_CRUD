@@ -1,14 +1,32 @@
 package com.dezxxx.hometasks.crud.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
 import java.util.List;
 import java.util.Objects;
 
+@Entity
+@Table(name = "writer")
 public class Writer {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "first_name", nullable = false)
     private String firstName;
+
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
+    @OneToMany(mappedBy = "writer", fetch = FetchType.LAZY)
     private List<Post> posts;
 
     public Long getId() {
@@ -46,23 +64,17 @@ public class Writer {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Writer)) return false;
-        Writer writer = (Writer) o;
-        return Objects.equals(id, writer.id);
+        if (!(o instanceof Writer other)) return false;
+        return id != null && id.equals(other.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
 
     @Override
     public String toString() {
-        return "Writer{" +
-                "id=" + id +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", posts=" + (posts == null ? 0 : posts.size()) +
-                '}';
+        return "Writer{id=" + id + ", firstName='" + firstName + "', lastName='" + lastName + "'}";
     }
 }

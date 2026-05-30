@@ -38,7 +38,7 @@ public class PostService {
         post.setContent(content.trim());
         post.setCreated(LocalDateTime.now());
         post.setUpdated(LocalDateTime.now());
-        post.setStatus(PostStatus.ACTIVE.name());
+        post.setStatus(PostStatus.ACTIVE);
         post.setLabels(labels);
         post.setWriter(writer);
 
@@ -91,7 +91,7 @@ public class PostService {
         idValidator.validate(id, "id");
 
         Post post = getById(id);
-        post.setStatus(status.name());
+        post.setStatus(status);
         post.setUpdated(LocalDateTime.now());
 
         return repository.update(post);

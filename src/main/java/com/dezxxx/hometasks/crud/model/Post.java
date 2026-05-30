@@ -1,18 +1,60 @@
 package com.dezxxx.hometasks.crud.model;
 
+import com.dezxxx.hometasks.crud.config.PostStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.SQLRestriction;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+@Entity
+@Table(name = "post")
+@SQLRestriction("status <> 'DELETED'")
 public class Post {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "title")
     private String title;
+
+    @Column(name = "content")
     private String content;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "writer_id", nullable = false)
     private Writer writer;
+
+    @Column(name = "created")
     private LocalDateTime created;
+
+    @Column(name = "updated")
     private LocalDateTime updated;
-    private String status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private PostStatus status;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "post_label",
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "label_id")
+    )
     private List<Label> labels;
 
 
@@ -65,11 +107,11 @@ public class Post {
         this.updated = updated;
     }
 
-    public String getStatus() {
+    public PostStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(PostStatus status) {
         this.status = status;
     }
 
@@ -84,24 +126,17 @@ public class Post {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Post)) return false;
-        Post post = (Post) o;
-        return Objects.equals(id, post.id);
+        if (!(o instanceof Post other)) return false;
+        return id != null && id.equals(other.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
 
     @Override
     public String toString() {
-        return "Post{" +
-                "writer=" + writer+
-                ", id=" + id +
-                ", title='" + title + '\'' +
-                ", status='" + status + '\'' +
-                ", labels=" + (labels == null ? 0 : labels.size()) +
-                '}';
+        return "Post{id=" + id + ", title='" + title + "', status=" + status + "}";
     }
 }

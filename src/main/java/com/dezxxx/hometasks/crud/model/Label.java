@@ -1,10 +1,23 @@
 package com.dezxxx.hometasks.crud.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.util.Objects;
 
+@Entity
+@Table(name = "label")
 public class Label {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "name", nullable = false)
     private String name;
 
     public Long getId() {
@@ -26,21 +39,17 @@ public class Label {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Label)) return false;
-        Label label = (Label) o;
-        return Objects.equals(id, label.id);
+        if (!(o instanceof Label other)) return false;
+        return id != null && id.equals(other.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getClass().hashCode();
     }
 
     @Override
     public String toString() {
-        return "Label{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                '}';
+        return "Label{id=" + id + ", name='" + name + "'}";
     }
 }
