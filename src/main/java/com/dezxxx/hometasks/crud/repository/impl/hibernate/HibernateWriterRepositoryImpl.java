@@ -56,12 +56,6 @@ public class HibernateWriterRepositoryImpl implements WriterRepository {
 
     @Override
     public void deleteById(Long id) {
-        HibernateUtil.runInTransaction(session -> {
-            Writer writer = session.get(Writer.class, id);
-            if (writer == null) {
-                throw new RepositoryException("Writer not found: " + id);
-            }
-            session.remove(writer);
-        });
+        HibernateUtil.deleteById(Writer.class, id);
     }
 }

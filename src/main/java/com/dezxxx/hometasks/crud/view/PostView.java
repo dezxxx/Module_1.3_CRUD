@@ -181,12 +181,13 @@ public class PostView {
 
     private void changeStatus() {
 
-        Post post = choosePost("Choose post to change status:");
+        Post post = choosePost("Choose post to change status:", postController.getAllIncludingDeleted());
 
         System.out.println("Current status: [" + post.getStatus() + "]");
         System.out.println("\nNew status:");
         System.out.println("1. ACTIVE");
         System.out.println("2. UNDER_REVIEW");
+        System.out.println("3. DELETED");
         System.out.println("0. Cancel");
 
         int choice = InputUtil.readChoice(scanner, "Choose: ");
@@ -194,6 +195,7 @@ public class PostView {
         PostStatus newStatus = switch (choice) {
             case 1 -> PostStatus.ACTIVE;
             case 2 -> PostStatus.UNDER_REVIEW;
+            case 3 -> PostStatus.DELETED;
             case 0 -> throw new UserCancelledException();
             default -> throw new IllegalArgumentException("Invalid status option.");
         };
@@ -245,11 +247,13 @@ public class PostView {
     }
 
     private Post choosePost(String title) {
+        return choosePost(title, postController.getAll());
+    }
 
-        List<Post> all = postController.getAll();
+    private Post choosePost(String title, List<Post> all) {
 
         if (all.isEmpty()) {
-            throw new IllegalStateException("No active posts found.");
+            throw new IllegalStateException("No posts found.");
         }
 
         Pager<Post> pager = new Pager<>(all);

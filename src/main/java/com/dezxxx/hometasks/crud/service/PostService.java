@@ -49,6 +49,10 @@ public class PostService {
         return repository.findAll();
     }
 
+    public List<Post> getAllIncludingDeleted() {
+        return repository.findAllIncludingDeleted();
+    }
+
     public Post getById(Long id) {
 
         idValidator.validate(id, "id");
@@ -90,10 +94,11 @@ public class PostService {
 
         idValidator.validate(id, "id");
 
-        Post post = getById(id);
-        post.setStatus(status);
-        post.setUpdated(LocalDateTime.now());
+        repository.updateStatus(id, status);
 
-        return repository.update(post);
+        Post result = new Post();
+        result.setId(id);
+        result.setStatus(status);
+        return result;
     }
 }

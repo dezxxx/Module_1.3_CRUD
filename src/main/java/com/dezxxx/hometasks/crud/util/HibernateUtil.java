@@ -14,9 +14,11 @@ public final class HibernateUtil {
     private HibernateUtil() {}
 
     private static SessionFactory buildSessionFactory() {
-        return new Configuration()
+        SessionFactory sf = new Configuration()
                 .configure("hibernate.cfg.xml")
                 .buildSessionFactory();
+        Runtime.getRuntime().addShutdownHook(new Thread(sf::close));
+        return sf;
     }
 
     public static <T> T executeInTransaction(Function<Session, T> action) {
@@ -40,7 +42,14 @@ public final class HibernateUtil {
         });
     }
 
-    public static void shutdown() {
-        sessionFactory.close();
+    public static <T> void deleteById(Class<T> type, Object id) {
+        runInTransaction(session -> {
+            T entity = session.get(type, id);
+            if (entity == null) {
+                throw new RepositoryException(type.getSimpleName() + " not found: " + id);
+            }
+            session.remove(entity);
+        });
     }
+
 }

@@ -8,7 +8,10 @@ import com.dezxxx.hometasks.crud.repository.PostRepository;
 import com.dezxxx.hometasks.crud.util.HibernateUtil;
 import com.dezxxx.hometasks.crud.util.RepositoryException;
 
+import org.hibernate.Session;
+
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,20 +19,15 @@ import java.util.stream.Collectors;
 
 public class HibernatePostRepositoryImpl implements PostRepository {
 
+    private static final String FETCH_QUERY =
+            "FROM Post p LEFT JOIN FETCH p.writer LEFT JOIN FETCH p.labels";
+
     @Override
     public Post save(Post post) {
         return HibernateUtil.executeInTransaction(session -> {
             Writer managedWriter = session.get(Writer.class, post.getWriter().getId());
             post.setWriter(managedWriter);
-
-            if (post.getLabels() != null && !post.getLabels().isEmpty()) {
-                List<Label> managedLabels = post.getLabels().stream()
-                        .map(l -> session.get(Label.class, l.getId()))
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-                post.setLabels(managedLabels);
-            }
-
+            post.setLabels(attachLabels(session, post.getLabels()));
             session.persist(post);
             return post;
         });
@@ -39,10 +37,7 @@ public class HibernatePostRepositoryImpl implements PostRepository {
     public List<Post> findAll() {
         return HibernateUtil.executeInTransaction(session ->
                 session.createQuery(
-                        "SELECT DISTINCT p FROM Post p " +
-                        "LEFT JOIN FETCH p.writer " +
-                        "LEFT JOIN FETCH p.labels " +
-                        "ORDER BY p.id",
+                        "SELECT DISTINCT p " + FETCH_QUERY + " ORDER BY p.id",
                         Post.class
                 ).getResultList()
         );
@@ -52,10 +47,7 @@ public class HibernatePostRepositoryImpl implements PostRepository {
     public Optional<Post> findById(Long id) {
         return HibernateUtil.executeInTransaction(session ->
                 session.createQuery(
-                        "SELECT p FROM Post p " +
-                        "LEFT JOIN FETCH p.writer " +
-                        "LEFT JOIN FETCH p.labels " +
-                        "WHERE p.id = :id",
+                        "SELECT p " + FETCH_QUERY + " WHERE p.id = :id",
                         Post.class
                 )
                 .setParameter("id", id)
@@ -70,34 +62,46 @@ public class HibernatePostRepositoryImpl implements PostRepository {
             if (managed == null) {
                 throw new RepositoryException("Post not found: " + post.getId());
             }
-
             managed.setTitle(post.getTitle());
             managed.setContent(post.getContent());
             managed.setUpdated(post.getUpdated());
             managed.setStatus(post.getStatus());
-
-            if (post.getLabels() != null) {
-                List<Label> managedLabels = post.getLabels().stream()
-                        .map(l -> session.get(Label.class, l.getId()))
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-                managed.setLabels(managedLabels);
-            }
-
+            managed.setLabels(attachLabels(session, post.getLabels()));
             return managed;
         });
     }
 
+    private List<Label> attachLabels(Session session, List<Label> labels) {
+        if (labels == null || labels.isEmpty()) return Collections.emptyList();
+        return labels.stream()
+                .map(l -> session.get(Label.class, l.getId()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
     @Override
-    public void deleteById(Long id) {
+    public List<Post> findAllIncludingDeleted() {
+        return HibernateUtil.executeInTransaction(session ->
+                session.createNativeQuery("SELECT * FROM post ORDER BY id", Post.class)
+                        .getResultList()
+        );
+    }
+
+    @Override
+    public void updateStatus(Long id, PostStatus status) {
         HibernateUtil.runInTransaction(session ->
-                session.createMutationQuery(
-                        "UPDATE Post p SET p.status = :status, p.updated = :updated WHERE p.id = :id"
+                session.createNativeQuery(
+                        "UPDATE post SET status = ?, updated = ? WHERE id = ?"
                 )
-                .setParameter("status", PostStatus.DELETED)
-                .setParameter("updated", LocalDateTime.now())
-                .setParameter("id", id)
+                .setParameter(1, status.name())
+                .setParameter(2, LocalDateTime.now())
+                .setParameter(3, id)
                 .executeUpdate()
         );
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        updateStatus(id, PostStatus.DELETED);
     }
 }

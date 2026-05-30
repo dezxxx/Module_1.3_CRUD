@@ -12,7 +12,7 @@ Data is persisted in a **MySQL** database via **Hibernate ORM**. Schema is manag
 | Java        | 21           | Core language                 |
 | MySQL       | 8+           | Relational database           |
 | Hibernate   | 6.6.3.Final  | ORM (database access)         |
-| Flyway      | 10.21.0      | Database schema migrations    |
+| Flyway      | 10.20.1      | Database schema migrations    |
 | JUnit 5     | 5.10.2       | Unit testing                  |
 | Mockito     | 5.12.0       | Mocking in tests              |
 | Maven       | 3.x          | Build & dependency management |
@@ -89,7 +89,8 @@ Flyway runs automatically on application startup before Hibernate initializes.
 - Full **CRUD** for Writer, Post, Label
 - **Soft delete** for Post — sets `status = DELETED`, record stays in DB
 - **Hard delete** for Writer (cascades to posts) and Label
-- **Post status change** — switch between `ACTIVE` and `UNDER_REVIEW`
+- **Post restore** — Change Status shows all posts including DELETED, allows restoring back to `ACTIVE`
+- **Post status change** — `ACTIVE` · `UNDER_REVIEW` · `DELETED` (via Change Status menu)
 - **Partial update** — press Enter to keep the current field value
 - **Pagination** — 5 records per page with `n` / `p` navigation
 - **Search / filter** — search by name or title in Get All
@@ -102,26 +103,24 @@ Flyway runs automatically on application startup before Hibernate initializes.
 ## Prerequisites
 
 - **Java 21** or higher
-- **MySQL 8+** running on `localhost:3306`
-- Database `hibernate_db` must exist:
+- **MySQL 8.4+** running on `localhost:3306`
+- Database `hibernate_db_1` must exist:
 
 ```sql
-CREATE DATABASE hibernate_db;
+CREATE DATABASE hibernate_db_1;
 ```
 
 ---
 
 ## Configuration
 
-Credentials are read from **environment variables** — never hardcoded:
+Credentials are set directly in `hibernate.cfg.xml` and `FlywayMigration.java`:
 
-| Variable      | Example value                                  |
-|---------------|------------------------------------------------|
-| `DB_URL`      | `jdbc:mysql://localhost:3306/hibernate_db`     |
-| `DB_USER`     | `root`                                         |
-| `DB_PASSWORD` | `your_password`                                |
-
-Set them in your OS, IDE run configuration, or `.env` file (do not commit `.env`).
+```
+URL:      jdbc:mysql://localhost:3306/hibernate_db_1
+User:     root
+Password: your_password
+```
 
 ---
 
@@ -129,7 +128,7 @@ Set them in your OS, IDE run configuration, or `.env` file (do not commit `.env`
 
 1. Clone the repository
 2. Create the database (see Prerequisites)
-3. Set environment variables `DB_URL`, `DB_USER`, `DB_PASSWORD`
+3. Set your credentials in `hibernate.cfg.xml` and `FlywayMigration.java`
 4. Run:
 
 ```bash

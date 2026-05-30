@@ -33,6 +33,11 @@ public class PostController {
         return postService.getAll();
     }
 
+    public List<Post> getAllIncludingDeleted() {
+
+        return postService.getAllIncludingDeleted();
+    }
+
     public Post getById(Long id) {
 
         return postService.getById(id);

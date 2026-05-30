@@ -160,17 +160,15 @@ class PostServiceTest {
 
     @Test
     void changeStatus_shouldChangeStatusAndReturnPost() {
-        Post post = new Post();
-        post.setId(1L);
-        post.setStatus(PostStatus.ACTIVE);
+        // Arrange
+        doNothing().when(repository).updateStatus(1L, PostStatus.UNDER_REVIEW);
 
-        when(repository.findById(1L)).thenReturn(Optional.of(post));
-        when(repository.update(post)).thenReturn(post);
-
+        // Act
         Post result = service.changeStatus(1L, PostStatus.UNDER_REVIEW);
 
+        // Assert
         assertEquals(PostStatus.UNDER_REVIEW, result.getStatus());
-        verify(repository).update(post);
+        verify(repository).updateStatus(1L, PostStatus.UNDER_REVIEW);
     }
 
     @Test
@@ -188,10 +186,14 @@ class PostServiceTest {
     }
 
     @Test
-    void changeStatus_shouldThrowWhenPostNotFound() {
-        when(repository.findById(99L)).thenReturn(Optional.empty());
+    void changeStatus_shouldCallUpdateStatusWithCorrectParams() {
+        // Arrange
+        doNothing().when(repository).updateStatus(1L, PostStatus.DELETED);
 
-        assertThrows(NoSuchElementException.class,
-                () -> service.changeStatus(99L, PostStatus.ACTIVE));
+        // Act
+        service.changeStatus(1L, PostStatus.DELETED);
+
+        // Assert
+        verify(repository).updateStatus(1L, PostStatus.DELETED);
     }
 }

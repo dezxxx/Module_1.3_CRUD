@@ -42,12 +42,6 @@ public class HibernateLabelRepositoryImpl implements LabelRepository {
 
     @Override
     public void deleteById(Long id) {
-        HibernateUtil.runInTransaction(session -> {
-            Label label = session.get(Label.class, id);
-            if (label == null) {
-                throw new RepositoryException("Label not found: " + id);
-            }
-            session.remove(label);
-        });
+        HibernateUtil.deleteById(Label.class, id);
     }
 }
