@@ -20,21 +20,27 @@ public final class InputUtil {
 
     public static String readText(Scanner scanner, String prompt, int minLength) {
         while (true) {
-            System.out.print(prompt);
+            System.out.print(prompt + " (Enter to cancel): ");
             String value = scanner.nextLine().trim();
-            if (value.length() >= minLength) {
-                return value;
-            }
+            if (value.isEmpty()) throw new UserCancelledException();
+            if (value.length() >= minLength) return value;
             System.out.println("Input must be at least " + minLength + " character(s).");
         }
     }
 
+    public static String readUpdatedText(Scanner scanner, String prompt, String currentValue) {
+        System.out.print(prompt + " (Enter = keep, 0 = cancel): ");
+        String input = scanner.nextLine().trim();
+        if (input.equals("0")) throw new UserCancelledException();
+        return input.isEmpty() ? currentValue : input;
+    }
+
     public static boolean readConfirmation(Scanner scanner, String prompt) {
         while (true) {
-            System.out.print(prompt + " (y/n): ");
+            System.out.print(prompt + " (y/n, Enter to cancel): ");
             String input = scanner.nextLine().trim().toLowerCase();
+            if (input.isEmpty() || input.equals("n")) return false;
             if (input.equals("y")) return true;
-            if (input.equals("n")) return false;
             System.out.println("Enter 'y' or 'n'.");
         }
     }

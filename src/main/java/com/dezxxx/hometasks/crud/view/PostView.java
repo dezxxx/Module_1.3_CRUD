@@ -139,15 +139,13 @@ public class PostView {
 
         Post post = choosePost("Choose post to update:");
 
-        System.out.println("(Press Enter to keep current value)");
-
-        String title = readUpdatedText(
-                "Title   [" + post.getTitle() + "]: ",
+        String title = InputUtil.readUpdatedText(
+                scanner, "Title   [" + post.getTitle() + "]",
                 post.getTitle()
         );
 
-        String content = readUpdatedText(
-                "Content [" + post.getContent() + "]: ",
+        String content = InputUtil.readUpdatedText(
+                scanner, "Content [" + post.getContent() + "]",
                 post.getContent()
         );
 
@@ -363,12 +361,6 @@ public class PostView {
 
         System.out.println("  Created: " + post.getCreated() +
                 "  Updated: " + post.getUpdated());
-    }
-
-    private String readUpdatedText(String prompt, String currentValue) {
-        System.out.print(prompt);
-        String input = scanner.nextLine().trim();
-        return input.isEmpty() ? currentValue : input;
     }
 
     private void pause() {

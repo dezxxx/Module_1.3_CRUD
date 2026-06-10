@@ -4,6 +4,7 @@ import com.dezxxx.hometasks.crud.model.Writer;
 import com.dezxxx.hometasks.crud.repository.WriterRepository;
 import com.dezxxx.hometasks.crud.util.HibernateUtil;
 import com.dezxxx.hometasks.crud.util.RepositoryException;
+import org.hibernate.Hibernate;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,24 +21,30 @@ public class HibernateWriterRepositoryImpl implements WriterRepository {
 
     @Override
     public List<Writer> findAll() {
-        return HibernateUtil.executeInTransaction(session ->
-                session.createQuery(
-                        "SELECT DISTINCT w FROM Writer w LEFT JOIN FETCH w.posts ORDER BY w.id",
-                        Writer.class
-                ).getResultList()
-        );
+        return HibernateUtil.executeInTransaction(session -> {
+            List<Writer> writers = session.createQuery(
+                    "SELECT DISTINCT w FROM Writer w LEFT JOIN FETCH w.posts ORDER BY w.id",
+                    Writer.class
+            ).getResultList();
+            writers.stream()
+                    .flatMap(w -> w.getPosts().stream())
+                    .forEach(p -> Hibernate.initialize(p.getLabels()));
+            return writers;
+        });
     }
 
     @Override
     public Optional<Writer> findById(Long id) {
-        return HibernateUtil.executeInTransaction(session ->
-                session.createQuery(
-                        "SELECT w FROM Writer w LEFT JOIN FETCH w.posts WHERE w.id = :id",
-                        Writer.class
-                )
-                .setParameter("id", id)
-                .uniqueResultOptional()
-        );
+        return HibernateUtil.executeInTransaction(session -> {
+            Optional<Writer> result = session.createQuery(
+                    "SELECT w FROM Writer w LEFT JOIN FETCH w.posts WHERE w.id = :id",
+                    Writer.class
+            )
+            .setParameter("id", id)
+            .uniqueResultOptional();
+            result.ifPresent(w -> w.getPosts().forEach(p -> Hibernate.initialize(p.getLabels())));
+            return result;
+        });
     }
 
     @Override

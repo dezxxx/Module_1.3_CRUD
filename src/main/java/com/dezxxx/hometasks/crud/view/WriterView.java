@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+import com.dezxxx.hometasks.crud.model.Label;
+
 public class WriterView {
 
     private final WriterController writerController;
@@ -122,15 +124,13 @@ public class WriterView {
 
         Writer writer = chooseWriter("Choose writer to update:");
 
-        System.out.println("(Press Enter to keep current value)");
-
-        String firstName = readUpdatedText(
-                "First name [" + writer.getFirstName() + "]: ",
+        String firstName = InputUtil.readUpdatedText(
+                scanner, "First name [" + writer.getFirstName() + "]",
                 writer.getFirstName()
         );
 
-        String lastName = readUpdatedText(
-                "Last name  [" + writer.getLastName() + "]: ",
+        String lastName = InputUtil.readUpdatedText(
+                scanner, "Last name  [" + writer.getLastName() + "]",
                 writer.getLastName()
         );
 
@@ -216,13 +216,14 @@ public class WriterView {
         for (Post post : posts) {
             System.out.printf("    - [ID: %d] %s [%s]%n",
                     post.getId(), post.getTitle(), post.getStatus());
+            List<Label> labels = post.getLabels();
+            if (labels != null && !labels.isEmpty()) {
+                String labelNames = labels.stream()
+                        .map(Label::getName)
+                        .collect(Collectors.joining(", "));
+                System.out.println("      Labels: " + labelNames);
+            }
         }
-    }
-
-    private String readUpdatedText(String prompt, String currentValue) {
-        System.out.print(prompt);
-        String input = scanner.nextLine().trim();
-        return input.isEmpty() ? currentValue : input;
     }
 
     private void pause() {

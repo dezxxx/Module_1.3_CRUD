@@ -119,10 +119,8 @@ public class LabelView {
 
         Label label = chooseLabel("Choose label to update:");
 
-        System.out.println("(Press Enter to keep current value)");
-
-        String name = readUpdatedText(
-                "Name [" + label.getName() + "]: ",
+        String name = InputUtil.readUpdatedText(
+                scanner, "Name [" + label.getName() + "]",
                 label.getName()
         );
 
@@ -187,12 +185,6 @@ public class LabelView {
 
             System.out.println("Invalid choice. Try again.");
         }
-    }
-
-    private String readUpdatedText(String prompt, String currentValue) {
-        System.out.print(prompt);
-        String input = scanner.nextLine().trim();
-        return input.isEmpty() ? currentValue : input;
     }
 
     private void pause() {
