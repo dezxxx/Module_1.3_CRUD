@@ -103,7 +103,7 @@ db/migration/
 - **Pagination** — 5 records per page with `n` / `p` navigation
 - **Search / filter** — search by name or title in Get All
 - **Delete confirmation** — `(y/n)` prompt, Enter to cancel
-- **Cancel anywhere** — Enter cancels Create forms, `0` cancels Update fields, Enter/`n` cancels Delete confirmation, `0` cancels entity selection
+- **Cancel anywhere** — `0` cancels Create forms and Update fields, Enter/`n` cancels Delete confirmation, `0` cancels entity selection
 - **Input validation** — minimum length enforced, non-numeric input handled
 - **Labels in Writer view** — Writer's posts display their assigned labels
 
