@@ -16,6 +16,7 @@
         <junit.version>5.10.2</junit.version>
         <mockito.version>5.12.0</mockito.version>
         <mysql.version>9.1.0</mysql.version>
+        <postgresql.version>42.7.4</postgresql.version>
         <hibernate.version>6.6.3.Final</hibernate.version>
         <flyway.version>10.20.1</flyway.version>
 
@@ -47,6 +48,20 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
+        <!-- PostgreSQL JDBC -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency>
+
+        <!-- Flyway PostgreSQL -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
             <version>${flyway.version}</version>
         </dependency>
 

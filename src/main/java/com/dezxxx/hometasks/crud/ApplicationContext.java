@@ -16,13 +16,16 @@ import com.dezxxx.hometasks.crud.service.LabelService;
 import com.dezxxx.hometasks.crud.service.PostService;
 import com.dezxxx.hometasks.crud.service.WriterService;
 
+import com.dezxxx.hometasks.crud.util.DatabaseType;
 import com.dezxxx.hometasks.crud.util.FlywayMigration;
+import com.dezxxx.hometasks.crud.util.HibernateUtil;
 
 import com.dezxxx.hometasks.crud.validation.CompositeStrategy;
 import com.dezxxx.hometasks.crud.validation.NotBlankStrategy;
 import com.dezxxx.hometasks.crud.validation.PositiveIdStrategy;
 import com.dezxxx.hometasks.crud.validation.ValidationStrategy;
 
+import com.dezxxx.hometasks.crud.view.DbSelectionView;
 import com.dezxxx.hometasks.crud.view.LabelView;
 import com.dezxxx.hometasks.crud.view.MainView;
 import com.dezxxx.hometasks.crud.view.PostView;
@@ -41,12 +44,27 @@ public class ApplicationContext {
         try {
 
             // =========================
-            // 1. FLYWAY MIGRATIONS
+            // 1. SCANNER
             // =========================
-            FlywayMigration.run();
+            Scanner scanner = new Scanner(System.in);
 
             // =========================
-            // 2. VALIDATORS  (Strategy)
+            // 2. DB SELECTION
+            // =========================
+            DatabaseType dbType = new DbSelectionView(scanner).select();
+
+            // =========================
+            // 3. FLYWAY MIGRATIONS
+            // =========================
+            FlywayMigration.run(dbType);
+
+            // =========================
+            // 4. HIBERNATE INIT
+            // =========================
+            HibernateUtil.init(dbType);
+
+            // =========================
+            // 5. VALIDATORS  (Strategy)
             // =========================
             ValidationStrategy<String> textValidator =
                     new CompositeStrategy<>(new NotBlankStrategy());
@@ -54,7 +72,7 @@ public class ApplicationContext {
                     new CompositeStrategy<>(new PositiveIdStrategy());
 
             // =========================
-            // 3. REPOSITORIES
+            // 6. REPOSITORIES
             // =========================
             LabelRepository labelRepository =
                     new HibernateLabelRepositoryImpl();
@@ -66,7 +84,7 @@ public class ApplicationContext {
                     new HibernateWriterRepositoryImpl();
 
             // =========================
-            // 4. SERVICES
+            // 7. SERVICES
             // =========================
             LabelService labelService =
                     new LabelService(labelRepository, textValidator, idValidator);
@@ -78,7 +96,7 @@ public class ApplicationContext {
                     new WriterService(writerRepository, textValidator, idValidator);
 
             // =========================
-            // 5. CONTROLLERS
+            // 8. CONTROLLERS
             // =========================
             LabelController labelController =
                     new LabelController(labelService);
@@ -90,12 +108,7 @@ public class ApplicationContext {
                     new WriterController(writerService);
 
             // =========================
-            // 6. SCANNER
-            // =========================
-            Scanner scanner = new Scanner(System.in);
-
-            // =========================
-            // 7. VIEWS
+            // 9. VIEWS
             // =========================
             LabelView labelView =
                     new LabelView(labelController, scanner);
@@ -112,7 +125,7 @@ public class ApplicationContext {
                     new WriterView(writerController, scanner);
 
             // =========================
-            // 8. MAIN VIEW
+            // 10. MAIN VIEW
             // =========================
             this.mainView =
                     new MainView(writerView, postView, labelView, scanner);

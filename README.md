@@ -1,7 +1,8 @@
 # Java Console CRUD Application
 
 A console-based CRUD application for managing a simple blog system — Writers, Posts, and Labels.
-Data is persisted in a **MySQL** database via **Hibernate ORM**. Schema is managed with **Flyway**.
+Data is persisted via **Hibernate ORM** with support for **MySQL** and **PostgreSQL**.
+Schema is managed with **Flyway**. Database is selected at application startup.
 
 ---
 
@@ -10,7 +11,8 @@ Data is persisted in a **MySQL** database via **Hibernate ORM**. Schema is manag
 | Technology  | Version      | Purpose                       |
 |-------------|--------------|-------------------------------|
 | Java        | 21           | Core language                 |
-| MySQL       | 8+           | Relational database           |
+| MySQL       | 8+           | Relational database (option 1)|
+| PostgreSQL  | 18+          | Relational database (option 2)|
 | Hibernate   | 6.6.3.Final  | ORM (database access)         |
 | Flyway      | 10.20.1      | Database schema migrations    |
 | JUnit 5     | 5.10.2       | Unit testing                  |
@@ -22,7 +24,7 @@ Data is persisted in a **MySQL** database via **Hibernate ORM**. Schema is manag
 ## Architecture
 
 ```
-View → Controller → Service → Repository → Hibernate → MySQL
+View → Controller → Service → Repository → Hibernate → MySQL / PostgreSQL
 ```
 
 | Layer       | Package          | Responsibility                     |
@@ -39,7 +41,7 @@ View → Controller → Service → Repository → Hibernate → MySQL
 
 - **Singleton** — `HibernateUtil` builds and holds a single `SessionFactory` for the app lifetime
 - **Strategy** — `ValidationStrategy<T>` interface with `NotBlankStrategy`, `PositiveIdStrategy`, and `CompositeStrategy` (chains multiple rules) — injected into services
-- **Facade** — `ApplicationContext` hides full initialization (Flyway → Hibernate → repositories → services → controllers → views); `App.java` only calls `new ApplicationContext().start()`
+- **Facade** — `ApplicationContext` hides full initialization (DB selection → Flyway → Hibernate → repositories → services → controllers → views); `App.java` only calls `new ApplicationContext().start()`
 
 ---
 
@@ -71,22 +73,28 @@ Writer  ──< Post >── Label
 
 ## Database Schema
 
-Managed by Flyway (`src/main/resources/db/migration/`):
+Managed by Flyway, runs automatically on startup:
 
 ```
-V1__create_writer_table.sql      ← CREATE TABLE writer
-V2__create_post_table.sql        ← CREATE TABLE post + FK to writer
-V3__create_label_table.sql       ← CREATE TABLE label
-V4__create_post_label_table.sql  ← CREATE TABLE post_label (M:N junction)
-```
+db/migration/              ← MySQL migrations
+    V1__create_writer_table.sql
+    V2__create_post_table.sql
+    V3__create_label_table.sql
+    V4__create_post_label_table.sql
 
-Flyway runs automatically on application startup before Hibernate initializes.
+db/migration/postgres/     ← PostgreSQL migrations (BIGSERIAL instead of AUTO_INCREMENT)
+    V1__create_writer_table.sql
+    V2__create_post_table.sql
+    V3__create_label_table.sql
+    V4__create_post_label_table.sql
+```
 
 ---
 
 ## Features
 
 - Full **CRUD** for Writer, Post, Label
+- **Database selection** at startup — choose MySQL or PostgreSQL via console menu
 - **Soft delete** for Post — sets `status = DELETED`, record stays in DB
 - **Hard delete** for Writer (cascades to posts) and Label
 - **Post restore** — Change Status shows all posts including DELETED, allows restoring back to `ACTIVE`
@@ -103,9 +111,15 @@ Flyway runs automatically on application startup before Hibernate initializes.
 ## Prerequisites
 
 - **Java 21** or higher
-- **MySQL 8.4+** running on `localhost:3306`
-- Database `hibernate_db_1` must exist:
+- **MySQL 8+** or **PostgreSQL 18+** running locally
+- Database `hibernate_db_1` must exist before first launch:
 
+**MySQL:**
+```sql
+CREATE DATABASE hibernate_db_1;
+```
+
+**PostgreSQL:**
 ```sql
 CREATE DATABASE hibernate_db_1;
 ```
@@ -114,13 +128,12 @@ CREATE DATABASE hibernate_db_1;
 
 ## Configuration
 
-Credentials are set directly in `hibernate.cfg.xml` and `FlywayMigration.java`:
+Credentials are set in `hibernate.cfg.xml` / `hibernate-postgres.cfg.xml` and `FlywayMigration.java`:
 
-```
-URL:      jdbc:mysql://localhost:3306/hibernate_db_1
-User:     root
-Password: your_password
-```
+| Database   | Default URL                                       | User     |
+|------------|---------------------------------------------------|----------|
+| MySQL      | `jdbc:mysql://localhost:3306/hibernate_db_1`      | root     |
+| PostgreSQL | `jdbc:postgresql://localhost:5432/hibernate_db_1` | postgres |
 
 ---
 
@@ -128,14 +141,23 @@ Password: your_password
 
 1. Clone the repository
 2. Create the database (see Prerequisites)
-3. Set your credentials in `hibernate.cfg.xml` and `FlywayMigration.java`
-4. Run:
+3. Set your credentials in the config files if needed
+4. Run from IDE or:
 
 ```bash
 mvn compile exec:java -Dexec.mainClass="com.dezxxx.hometasks.crud.App"
 ```
 
-Flyway will apply migrations and Hibernate will validate the schema automatically on first launch.
+5. At startup, select the database:
+
+```
+=== Select Database ===
+1. MySQL
+2. PostgreSQL
+Choose:
+```
+
+Flyway will apply migrations and Hibernate will validate the schema automatically.
 
 ---
 
@@ -168,11 +190,12 @@ src/
 │   │   ├── controller/
 │   │   ├── model/                             (JPA entities: Writer, Post, Label)
 │   │   ├── repository/
-│   │   │   └── impl/hibernate/               (Hibernate implementations)
+│   │   │   └── impl/hibernate/               (Hibernate implementations — work with both DBs)
 │   │   ├── service/
 │   │   ├── util/
 │   │   │   ├── HibernateUtil.java            (Singleton SessionFactory + transactions)
 │   │   │   ├── FlywayMigration.java          (runs Flyway on startup)
+│   │   │   ├── DatabaseType.java             (Enum: MYSQL, POSTGRES)
 │   │   │   ├── InputUtil.java
 │   │   │   ├── Pager.java
 │   │   │   ├── RepositoryException.java
@@ -183,12 +206,12 @@ src/
 │   │       ├── PositiveIdStrategy.java
 │   │       └── CompositeStrategy.java         (chains multiple rules)
 │   └── resources/
-│       ├── hibernate.cfg.xml
+│       ├── hibernate.cfg.xml                  (MySQL config)
+│       ├── hibernate-postgres.cfg.xml         (PostgreSQL config)
 │       └── db/migration/
-│           ├── V1__create_writer_table.sql
-│           ├── V2__create_post_table.sql
-│           ├── V3__create_label_table.sql
-│           └── V4__create_post_label_table.sql
+│           ├── V1–V4 (MySQL)
+│           └── postgres/
+│               └── V1–V4 (PostgreSQL)
 └── test/
     └── java/com/dezxxx/hometasks/crud/service/
 ```

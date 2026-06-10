@@ -9,16 +9,14 @@ import java.util.function.Function;
 
 public final class HibernateUtil {
 
-    private static final SessionFactory sessionFactory = buildSessionFactory();
+    private static SessionFactory sessionFactory;
 
     private HibernateUtil() {}
 
-    private static SessionFactory buildSessionFactory() {
-        SessionFactory sf = new Configuration()
-                .configure("hibernate.cfg.xml")
-                .buildSessionFactory();
-        Runtime.getRuntime().addShutdownHook(new Thread(sf::close));
-        return sf;
+    public static void init(DatabaseType type) {
+        String config = type == DatabaseType.POSTGRES ? "hibernate-postgres.cfg.xml" : "hibernate.cfg.xml";
+        sessionFactory = new Configuration().configure(config).buildSessionFactory();
+        Runtime.getRuntime().addShutdownHook(new Thread(sessionFactory::close));
     }
 
     public static <T> T executeInTransaction(Function<Session, T> action) {
@@ -51,5 +49,4 @@ public final class HibernateUtil {
             session.remove(entity);
         });
     }
-
 }
