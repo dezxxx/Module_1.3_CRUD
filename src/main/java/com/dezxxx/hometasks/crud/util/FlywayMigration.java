@@ -23,7 +23,7 @@ public final class FlywayMigration {
                         isPostgres ? POSTGRES_USER     : MYSQL_USER,
                         isPostgres ? POSTGRES_PASSWORD : MYSQL_PASSWORD
                 )
-                .locations(isPostgres ? "classpath:db/migration/postgres" : "classpath:db/migration")
+                .locations(isPostgres ? "classpath:db/migration/postgres" : "classpath:db/migration/mysql")
                 .load()
                 .migrate();
     }
