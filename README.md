@@ -76,17 +76,17 @@ Writer  ──< Post >── Label
 Managed by Flyway, runs automatically on startup:
 
 ```
-db/migration/              ← MySQL migrations
-    V1__create_writer_table.sql
-    V2__create_post_table.sql
-    V3__create_label_table.sql
-    V4__create_post_label_table.sql
-
-db/migration/postgres/     ← PostgreSQL migrations (BIGSERIAL instead of AUTO_INCREMENT)
-    V1__create_writer_table.sql
-    V2__create_post_table.sql
-    V3__create_label_table.sql
-    V4__create_post_label_table.sql
+db/migration/
+├── mysql/     ← MySQL migrations (AUTO_INCREMENT)
+│   ├── V1__create_writer_table.sql
+│   ├── V2__create_post_table.sql
+│   ├── V3__create_label_table.sql
+│   └── V4__create_post_label_table.sql
+└── postgres/  ← PostgreSQL migrations (BIGSERIAL)
+    ├── V1__create_writer_table.sql
+    ├── V2__create_post_table.sql
+    ├── V3__create_label_table.sql
+    └── V4__create_post_label_table.sql
 ```
 
 ---
@@ -99,12 +99,13 @@ db/migration/postgres/     ← PostgreSQL migrations (BIGSERIAL instead of AUTO_
 - **Hard delete** for Writer (cascades to posts) and Label
 - **Post restore** — Change Status shows all posts including DELETED, allows restoring back to `ACTIVE`
 - **Post status change** — `ACTIVE` · `UNDER_REVIEW` · `DELETED` (via Change Status menu)
-- **Partial update** — press Enter to keep the current field value
+- **Partial update** — press Enter to keep the current field value, `0` to cancel
 - **Pagination** — 5 records per page with `n` / `p` navigation
 - **Search / filter** — search by name or title in Get All
-- **Delete confirmation** — `(y/n)` prompt before any deletion
-- **Cancel** — enter `0` at any selection screen to return to menu
+- **Delete confirmation** — `(y/n)` prompt, Enter to cancel
+- **Cancel anywhere** — Enter cancels Create forms, `0` cancels Update fields, Enter/`n` cancels Delete confirmation, `0` cancels entity selection
 - **Input validation** — minimum length enforced, non-numeric input handled
+- **Labels in Writer view** — Writer's posts display their assigned labels
 
 ---
 
@@ -209,9 +210,8 @@ src/
 │       ├── hibernate.cfg.xml                  (MySQL config)
 │       ├── hibernate-postgres.cfg.xml         (PostgreSQL config)
 │       └── db/migration/
-│           ├── V1–V4 (MySQL)
-│           └── postgres/
-│               └── V1–V4 (PostgreSQL)
+│           ├── mysql/    ← V1–V4 MySQL
+│           └── postgres/ ← V1–V4 PostgreSQL
 └── test/
     └── java/com/dezxxx/hometasks/crud/service/
 ```
