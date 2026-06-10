@@ -20,9 +20,9 @@ public final class InputUtil {
 
     public static String readText(Scanner scanner, String prompt, int minLength) {
         while (true) {
-            System.out.print(prompt + " (Enter to cancel): ");
+            System.out.print(prompt + " (0 to cancel): ");
             String value = scanner.nextLine().trim();
-            if (value.isEmpty()) throw new UserCancelledException();
+            if (value.equals("0")) throw new UserCancelledException();
             if (value.length() >= minLength) return value;
             System.out.println("Input must be at least " + minLength + " character(s).");
         }

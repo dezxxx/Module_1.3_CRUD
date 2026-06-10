@@ -65,8 +65,8 @@ public class WriterView {
 
     private void create() {
 
-        String firstName = InputUtil.readText(scanner, "First name (min 2 chars): ", 2);
-        String lastName  = InputUtil.readText(scanner, "Last name  (min 2 chars): ", 2);
+        String firstName = InputUtil.readText(scanner, "First name (min 2 chars)", 2);
+        String lastName  = InputUtil.readText(scanner, "Last name  (min 2 chars)", 2);
 
         Writer created = writerController.create(firstName, lastName);
         System.out.println("Created: [ID: " + created.getId() + "] " +

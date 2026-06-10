@@ -77,8 +77,8 @@ public class PostView {
 
     private void create() {
 
-        String title   = InputUtil.readText(scanner, "Title   (min 3 chars): ", 3);
-        String content = InputUtil.readText(scanner, "Content (min 3 chars): ", 3);
+        String title   = InputUtil.readText(scanner, "Title   (min 3 chars)", 3);
+        String content = InputUtil.readText(scanner, "Content (min 3 chars)", 3);
 
         Writer writer = chooseWriter();
 

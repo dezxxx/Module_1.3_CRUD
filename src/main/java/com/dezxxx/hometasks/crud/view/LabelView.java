@@ -62,7 +62,7 @@ public class LabelView {
 
     private void create() {
 
-        String name = InputUtil.readText(scanner, "Label name (min 2 chars): ", 2);
+        String name = InputUtil.readText(scanner, "Label name (min 2 chars)", 2);
 
         Label created = labelController.create(name);
         System.out.println("Created: [ID: " + created.getId() + "] " + created.getName());
