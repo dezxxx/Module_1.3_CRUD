@@ -90,12 +90,12 @@ public class HibernatePostRepositoryImpl implements PostRepository {
     @Override
     public void updateStatus(Long id, PostStatus status) {
         HibernateUtil.runInTransaction(session ->
-                session.createNativeQuery(
-                        "UPDATE post SET status = ?, updated = ? WHERE id = ?"
+                session.createMutationQuery(
+                        "UPDATE Post p SET p.status = :status, p.updated = :updated WHERE p.id = :id"
                 )
-                .setParameter(1, status.name())
-                .setParameter(2, LocalDateTime.now())
-                .setParameter(3, id)
+                .setParameter("status", status)
+                .setParameter("updated", LocalDateTime.now())
+                .setParameter("id", id)
                 .executeUpdate()
         );
     }
